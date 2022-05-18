@@ -1,0 +1,42 @@
+PROJECT FOE, Create a code grading system based on machine learning.
+
+5/17
+    I have no idea what I am doing or what I'm going to do.
+
+    First part is creating a dataset though so I should focus on that. I will focus on C++ until I have a good method for creating a dataset for programing langues that has some kind of grading.
+    Questions to answer
+        How do you assign a grade to each snippet in the database for the model to learn from?
+            IDEAS:
+                Generate a quality likelihood score (0-100%) based on:
+                    (The Codebase)
+                        The number of revisions the code has had based on previous commits (is this doable?)
+                        COLLAPSABLE COMMENT ABOUT THE THING ABOVE
+                            Recent versions of git log learned a special form of the -L parameter:
+
+                            -L :<funcname>:<file>
+
+                            Trace the evolution of the line range given by "<start>,<end>" (or the function name regex <funcname>) within the <file>. You may not give any pathspec limiters. This is currently limited to a walk starting from a single revision, i.e., you may only give zero or one positive revision arguments. You can specify this option more than once.
+                            ...
+                            If “:<funcname>” is given in place of <start> and <end>, it is a regular expression that denotes the range from the first funcname line that matches <funcname>, up to the next funcname line. “:<funcname>” searches from the end of the previous -L range, if any, otherwise from the start of file. “^:<funcname>” searches from the start of file.
+
+                            In other words: if you ask Git to git log -L :myfunction:path/to/myfile.c, it will now happily print the change history of that function.
+                        The number of stars on the repo
+                        The number of forks on the repo
+                        The number of commits on the piece of code? ()
+                        The number of contributors on the repo (Over 100 is a good indicator)
+                    (The user who wrote the code)
+                        Activity on current project
+                    TODO:
+                        Figure out how to pull this information
+                        Figure out how each value will be weighted
+        How do you create a dataset for the model to learn from?
+            IDEAS:
+                Separate the code into methods that has a quality likleyhood score generated for each one
+                    Figure out pygccxml to brake the code down into compiler level information
+        How do you create a model and train it?
+                
+
+
+
+
+
