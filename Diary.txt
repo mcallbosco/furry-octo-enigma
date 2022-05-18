@@ -11,15 +11,18 @@ PROJECT FOE, Create a code grading system based on machine learning.
                     (The Codebase)
                         The number of revisions the code has had based on previous commits (FOUND A WAY TO DO)
                             USE GIT log
-                            Command 'git --no-pager log --pretty=oneline -L :main:main.cc > log.txt'
+                            Command 'git --no-pager log --reverse -L :main:main.cc > log.txt'
                             TODO: WRITE PARSER FOR THIS
-                            
+
+
                         
                         
                         path/to/myfile.c, it will now happily print the change history of that function.
                             git --no-pager log --no-notes -L :main:main.cc > log.txt
 
 
+                        Keywords in the commit message and discription of the commit (for cases where the commit is squashed)
+                            EX. 'fix','cleanup','refactor','update','fixup','revert'
                         
                         The number of stars on the repo
                             https://pygithub.readthedocs.io/en/latest/examples/Repository.html#:~:text=Get%20count%20of%20stars%20%C2%B6%20%3E%3E%3E%20repo%20%3D,%3D%20repo.get_issues%28state%3D%27open%27%29%20%3E%3E%3E%20for%20issue%20in%20open_issues%3A...%20print%28issue%29

@@ -5,8 +5,66 @@
 #The JSON file will have the following information:
 #	- commit hash
 #	- author
-#	- date
-#   - how many commits it's been since the first commit
+#	- commit name
+#	- commit description
+#   - how many commits it's been since the first commit (again start at 0)
+
+from asyncio.windows_events import NULL
+
 
 file = 'gitlog.txt'
 path = './'
+
+
+def load_commit_log(file):
+    with open(file, 'r') as f:
+        return f.read()
+
+def parse_commit_diff(diff):
+    if (diff.startswith('-')):
+        return ''
+    else: 
+        return str(diff[1:])
+
+def parse_commit_log(log):
+    commits = []
+    current_commit = None
+    incommit = False
+    current_file = None
+    for line in log.split('\n'):
+        if line.startswith('commit'):
+            if current_commit != None:
+                commits.append(current_commit)
+                current_commit = None
+                incommit = False
+            current_commit = {}
+            current_commit['hash'] = line.split()[1]
+            current_commit['commitcontent'] = ''
+        elif incommit:
+            current_commit['commitcontent'] =  str(current_commit['commitcontent']) + str(parse_commit_diff(line)) + '\n'
+        elif line.startswith('Author:'):
+            current_commit['author'] = line.split(':')[1].strip()
+        elif line.startswith('Date:'):
+            current_commit['date'] = line.split(':')[1].strip()
+            current_commit['summary'] = NULL
+        elif line.startswith('    '):
+            if current_commit['summary'] is NULL:
+                current_commit['summary'] = line.strip()
+                current_commit['description'] = NULL
+            else:
+                #description parser
+                if (not line == '    '):
+                    current_commit['description'] = str(current_commit['description']) + '\n' + str(line.strip())
+        elif line.startswith('@@'):
+            incommit = True
+    commits.append(current_commit)
+    return commits
+
+def main():
+    log = load_commit_log(path + file)
+    commits = parse_commit_log(log)
+    
+
+    print(commits[8])
+
+main()

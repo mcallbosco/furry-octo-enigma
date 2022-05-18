@@ -1,0 +1,906 @@
+commit e115c514521c7705112bd0cb2e4bf865b536501a
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Thu Aug 20 17:16:44 2020 +0200
+
+    Qt ui for PC (#2023)
+    
+    * qt ui boilerplate
+    
+    * this kinda works
+    
+    * cleanup
+    
+    * render inside other widget
+    
+    * cleanup
+    
+    * more cleanup
+    
+    * Not needed
+    
+    * Handle click
+    
+    * Draw at 20Hz
+    
+    * create paint.hpp
+    
+    * move stuff around
+    
+    * update sidebar
+    
+    * Draw vision
+    
+    * this works again
+    
+    * add clickable settings button
+    
+    * Only collapse sidebar when started
+    
+    * always use qt on linux
+    
+    * fix width
+    
+    * scrollable area
+    
+    * talk to NetworkManager
+    
+    * code to add a connection
+    
+    * params toggles
+    
+    * small cleanup
+    
+    * add qt5 to dockerfile
+    
+    * Qt on mac
+    
+    * Add qt to release files
+    
+    * fix macos build
+    
+    * nore more ifdefs needed
+    
+    * add icons
+    
+    * make a bit nicer
+    
+    * Hide scrollbar
+    
+    Co-authored-by: Comma Device <device@comma.ai>
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- /dev/null
++++ b/selfdrive/ui/qt/ui.cc
+@@ -0,0 +5,11 @@
++int main(int argc, char *argv[])
++{
++  QApplication a(argc, argv);
++
++  MainWindow w;
++
++  w.setFixedSize(vwp_w, vwp_h);
++  w.show();
++
++  return a.exec();
++}
+
+commit 2410c7e26bbf60dda83792d273f049586c1aa001
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Thu Aug 20 21:33:32 2020 +0200
+
+    ui: force GLES context
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -5,11 +5,14 @@
+ int main(int argc, char *argv[])
+ {
++  QSurfaceFormat fmt;
++  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
++  QSurfaceFormat::setDefaultFormat(fmt);
++
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
+-
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
+ 
+   return a.exec();
+ }
+
+commit 7956bb6883c75d97ca823d33c038841ef9e9e679
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Tue Aug 25 00:56:42 2020 -0700
+
+    mac ui kind of works (#2079)
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -5,14 +5,20 @@
+ int main(int argc, char *argv[])
+ {
+   QSurfaceFormat fmt;
++#ifdef __APPLE__
++  fmt.setVersion(3, 2);
++  fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
++  fmt.setRenderableType(QSurfaceFormat::OpenGL);
++#else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
++#endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
+ 
+   return a.exec();
+ }
+
+commit 43e3ec1bc1ee0d7b8044c5cabbe4022c5ddc9783
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Thu Aug 27 11:57:31 2020 -0700
+
+    UI cleanup (#2091)
+    
+    * remove unused UI code
+    
+    * these params aren't used anymore
+    
+    * this is cleaner
+    
+    * remove one more timeout
+    
+    * read that from carParams
+    
+    * only android needs pm
+    
+    * fix that
+    
+    * fix that
+    
+    Co-authored-by: Comma Device <device@comma.ai>
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -5,20 +5,19 @@
+-int main(int argc, char *argv[])
+-{
++int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
+ 
+   return a.exec();
+ }
+
+commit 42b6292fa5220ca979b0354de91aa16d2cf54039
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Mon Aug 31 15:02:01 2020 +0200
+
+    ui: simplify shader versions and fix hardcoded texture size (#2112)
+    
+    * fix shader version
+    
+    * fix texture buffer size
+    
+    * Attribute/Varying is deprecated
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -5,19 +5,23 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
++#ifdef QCOM2
++  w.showFullScreen();
++#else
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
++#endif
+ 
+   return a.exec();
+ }
+
+commit 53e71f44ceec181e40c4cbd3f14a403798bca7bb
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Wed Sep 23 23:16:55 2020 +0200
+
+    tici: fix ui rotation (#2222)
+    
+    * fix rotation using wayland
+    
+    * put back intrinsic matrix fix
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -5,23 +11,27 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
+-#ifdef QCOM2
+-  w.showFullScreen();
+-#else
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
++
++#ifdef QCOM2
++  QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
++  wl_surface *s = reinterpret_cast<wl_surface*>(native->nativeResourceForWindow("surface", w.windowHandle()));
++  wl_surface_set_buffer_transform(s, WL_OUTPUT_TRANSFORM_270);
++  wl_surface_commit(s);
++  w.showFullScreen();
+ #endif
+ 
+   return a.exec();
+ }
+
+commit 7f3bf2093f8a1766743a37782bb5c0105e70e2f9
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Fri Nov 20 13:21:18 2020 +0100
+
+    Qt ui: turn off screen after inactivity (#2583)
+    
+    * qt ui: turn off screen after inactivity
+    
+    * handle touch events globally
+    
+    * whitespace
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -11,27 +11,29 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+ 
+   MainWindow w;
+   w.setFixedSize(vwp_w, vwp_h);
+   w.show();
+ 
++  a.installEventFilter(&w);
++
+ #ifdef QCOM2
+   QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
+   wl_surface *s = reinterpret_cast<wl_surface*>(native->nativeResourceForWindow("surface", w.windowHandle()));
+   wl_surface_set_buffer_transform(s, WL_OUTPUT_TRANSFORM_270);
+   wl_surface_commit(s);
+   w.showFullScreen();
+ #endif
+ 
+   return a.exec();
+ }
+
+commit efc30f4a83953363d665290f99b91c7b52652cc2
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Tue Nov 24 22:07:03 2020 -0800
+
+    Qt cleanup (#2622)
+    
+    * scale
+    
+    * contain weston hack in one file
+    
+    * rest
+    
+    * no show
+    
+    * missed one
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -11,29 +6,18 @@
+ int main(int argc, char *argv[]) {
++  // TODO: should probably be done in gl window
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+-
+   MainWindow w;
+-  w.setFixedSize(vwp_w, vwp_h);
+-  w.show();
+-
++  setMainWindow(&w);
+   a.installEventFilter(&w);
+-
+-#ifdef QCOM2
+-  QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
+-  wl_surface *s = reinterpret_cast<wl_surface*>(native->nativeResourceForWindow("surface", w.windowHandle()));
+-  wl_surface_set_buffer_transform(s, WL_OUTPUT_TRANSFORM_270);
+-  wl_surface_commit(s);
+-  w.showFullScreen();
+-#endif
+-
+   return a.exec();
+ }
+
+commit fed642c4ed2fd668360bef480da8f0b7a8559916
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Wed Dec 2 20:47:47 2020 -0800
+
+    Qt offroad home screen (#2672)
+    
+    * some cleanup first
+    
+    * home sweet home
+    
+    * basic home screen
+    
+    * date
+    
+    * fix touch
+    
+    * fix mac
+    
+    * hide when onroad
+    
+    * box layout didn't do what i thought
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -6,18 +6,17 @@
+ int main(int argc, char *argv[]) {
+-  // TODO: should probably be done in gl window
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit ec8b21c261b28d62dd84c2a6fa28bef09f5c8ed0
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Sun Feb 28 18:10:50 2021 -0800
+
+    qt fixups (#20171)
+    
+    * no outline
+    
+    * disable on qcom for now
+    
+    * fix qt 5.12.8
+    
+    * cleanup drive stats
+    
+    * widgets cleanup
+    
+    * ssl test
+    
+    * revert that
+    
+    * disable by default
+    
+    Co-authored-by: Comma Device <device@comma.ai>
+
+diff --git a/selfdrive/ui/qt/ui.cc b/selfdrive/ui/qt/ui.cc
+--- a/selfdrive/ui/qt/ui.cc
++++ b/selfdrive/ui/qt/ui.cc
+@@ -6,17 +6,21 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
++#ifdef QCOM
++  QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
++#endif
++
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 23faedd25eb6895c86bb890fdbf4f48889ecf4c3
+Author: Comma Device <device@comma.ai>
+Date:   Sun May 2 16:28:36 2021 -0700
+
+    configure SSL globally on NEOS
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -6,21 +7,27 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+ #ifdef QCOM
+   QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+ #endif
+ 
++#ifdef QCOM
++  QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
++  ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem", QSsl::Pem, QRegExp::Wildcard));
++  QSslConfiguration::setDefaultConfiguration(ssl);
++#endif
++
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 757d2923d2bfcda620b252e21a348ac3f87f3a63
+Author: Dean Lee <deanlee3@gmail.com>
+Date:   Thu May 6 17:41:46 2021 +0800
+
+    Replace ifdefs with hardware abstraction layer (#20801)
+    
+    * add type to class hadwareXXX
+    
+    * replace ifdefs with hardware layer
+    
+    * continue
+    
+    * continue
+    
+    * new function get_driver_view_transform
+    
+    * full path to hw.h
+    
+    * fix build error setup.cc
+    
+    * apply review
+    
+    * fix typo
+    
+    * fix deprecated error:replace deprecated fromPath with new
+    
+    * fix build error
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -7,27 +8,24 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+-#ifdef QCOM
+-  QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+-#endif
+-
+-#ifdef QCOM
+-  QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+-  ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem", QSsl::Pem, QRegExp::Wildcard));
+-  QSslConfiguration::setDefaultConfiguration(ssl);
+-#endif
++  if (Hardware::EON()) {
++    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
++    QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
++    ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
++    QSslConfiguration::setDefaultConfiguration(ssl);
++  }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 3a95d3ccaae7168073410cd7d392a9564d9d45ba
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Thu May 6 12:29:30 2021 +0200
+
+    Revert "Replace ifdefs with hardware abstraction layer (#20801)"
+    
+    This reverts commit 757d2923d2bfcda620b252e21a348ac3f87f3a63.
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -8,24 +7,27 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+-  if (Hardware::EON()) {
+-    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+-    QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+-    ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+-    QSslConfiguration::setDefaultConfiguration(ssl);
+-  }
++#ifdef QCOM
++  QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
++#endif
++
++#ifdef QCOM
++  QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
++  ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem", QSsl::Pem, QRegExp::Wildcard));
++  QSslConfiguration::setDefaultConfiguration(ssl);
++#endif
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit ab319d4f54a53e1a0aa1c2c0d94d56a9acef8362
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Thu May 6 14:39:05 2021 +0200
+
+    Replace ifdef with hw abstraction layer (#20843)
+    
+    * Replace ifdefs with hardware abstraction layer (#20801)
+    
+    * add type to class hadwareXXX
+    
+    * replace ifdefs with hardware layer
+    
+    * continue
+    
+    * continue
+    
+    * new function get_driver_view_transform
+    
+    * full path to hw.h
+    
+    * fix build error setup.cc
+    
+    * apply review
+    
+    * fix typo
+    
+    * fix deprecated error:replace deprecated fromPath with new
+    
+    * fix build error
+    
+    * Fixes after ifdef clenaup (#20842)
+    
+    * inheritance doesnt work with static
+    
+    * fix debayer
+    
+    * small cleanup
+    
+    * Update selfdrive/camerad/cameras/camera_common.cc
+    
+    * Update selfdrive/ui/qt/offroad/settings.cc
+    
+    * Update selfdrive/common/modeldata.h
+    
+    * flip conditions
+    
+    * fix comment
+    
+    Co-authored-by: Dean Lee <deanlee3@gmail.com>
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -7,27 +8,24 @@
+ int main(int argc, char *argv[]) {
+   QSurfaceFormat fmt;
+ #ifdef __APPLE__
+   fmt.setVersion(3, 2);
+   fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+   fmt.setRenderableType(QSurfaceFormat::OpenGL);
+ #else
+   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+ #endif
+   QSurfaceFormat::setDefaultFormat(fmt);
+ 
+-#ifdef QCOM
+-  QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+-#endif
+-
+-#ifdef QCOM
+-  QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+-  ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem", QSsl::Pem, QRegExp::Wildcard));
+-  QSslConfiguration::setDefaultConfiguration(ssl);
+-#endif
++  if (Hardware::EON()) {
++    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
++    QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
++    ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
++    QSslConfiguration::setDefaultConfiguration(ssl);
++  }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 9429bd27835bf2b9e2df192c888d3600ef784cef
+Author: Dean Lee <deanlee3@gmail.com>
+Date:   Wed Jun 9 20:09:49 2021 +0800
+
+    qt/util.h : add new function setQtSurfaceFormat (#21206)
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -8,24 +9,16 @@
+ int main(int argc, char *argv[]) {
+-  QSurfaceFormat fmt;
+-#ifdef __APPLE__
+-  fmt.setVersion(3, 2);
+-  fmt.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
+-  fmt.setRenderableType(QSurfaceFormat::OpenGL);
+-#else
+-  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+-#endif
+-  QSurfaceFormat::setDefaultFormat(fmt);
++  setQtSurfaceFormat();
+ 
+   if (Hardware::EON()) {
+     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+     QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+     ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+     QSslConfiguration::setDefaultConfiguration(ssl);
+   }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 54b6a9f121aa7af0920016d7288b0037beca1260
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Fri Jul 2 14:01:59 2021 +0200
+
+    Qt logging through cloudlog (#21452)
+    
+    * Qt logging through cloudlog
+    
+    * sort imports
+    
+    * rename to swaLogMessageHandler
+    
+    * move to util
+    
+    * info is high enough
+    
+    * smaller diff
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -9,16 +9,17 @@
+ int main(int argc, char *argv[]) {
++  qInstallMessageHandler(swagLogMessageHandler);
+   setQtSurfaceFormat();
+ 
+   if (Hardware::EON()) {
+     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+     QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+     ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+     QSslConfiguration::setDefaultConfiguration(ssl);
+   }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit b7f8c6ad03e70b9b73ef67238c7a5946b315483e
+Author: Dean Lee <deanlee3@gmail.com>
+Date:   Thu Jul 8 12:19:56 2021 +0800
+
+    qt/spinner: reduce CPU usage from 17% to 12% (#21495)
+    
+    * faster spinner
+    
+    * initApp
+    
+    * no brightness
+    
+    * Update selfdrive/ui/qt/util.h
+    
+    Co-authored-by: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -9,17 +9,16 @@
+ int main(int argc, char *argv[]) {
+   qInstallMessageHandler(swagLogMessageHandler);
+-  setQtSurfaceFormat();
++  initApp();
+ 
+   if (Hardware::EON()) {
+-    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+     QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+     ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+     QSslConfiguration::setDefaultConfiguration(ssl);
+   }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit 12948e661a6b6424739082ee614d81b4549c2753
+Author: Adeeb Shihadeh <adeebshihadeh@gmail.com>
+Date:   Fri Jul 16 17:30:00 2021 -0700
+
+    soundd (#21619)
+    
+    * refactor alerts
+    
+    * doesn't go here anymore
+    
+    * soudd
+    
+    * handle controls unresponsive
+    
+    * same check
+    
+    * fix path
+    
+    * update sound test
+    
+    * nice
+    
+    * fix c2
+    
+    * add script
+    
+    * update tests
+    
+    Co-authored-by: Comma Device <device@comma.ai>
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -9,16 +11,18 @@
+ int main(int argc, char *argv[]) {
++  setpriority(PRIO_PROCESS, 0, -20);
++
+   qInstallMessageHandler(swagLogMessageHandler);
+   initApp();
+ 
+   if (Hardware::EON()) {
+     QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+     ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+     QSslConfiguration::setDefaultConfiguration(ssl);
+   }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
+
+commit ca8d4e417e53e5869ad77e8bfd5da62a78a88de3
+Author: Willem Melching <willem.melching@gmail.com>
+Date:   Fri Feb 25 14:36:27 2022 +0100
+
+    MacOS: ensure 1:1 rendering on HiDPI screens (#23860)
+
+diff --git a/selfdrive/ui/main.cc b/selfdrive/ui/main.cc
+--- a/selfdrive/ui/main.cc
++++ b/selfdrive/ui/main.cc
+@@ -11,18 +11,18 @@
+ int main(int argc, char *argv[]) {
+   setpriority(PRIO_PROCESS, 0, -20);
+ 
+   qInstallMessageHandler(swagLogMessageHandler);
+-  initApp();
++  initApp(argc, argv);
+ 
+   if (Hardware::EON()) {
+     QSslConfiguration ssl = QSslConfiguration::defaultConfiguration();
+     ssl.setCaCertificates(QSslCertificate::fromPath("/usr/etc/tls/cert.pem"));
+     QSslConfiguration::setDefaultConfiguration(ssl);
+   }
+ 
+   QApplication a(argc, argv);
+   MainWindow w;
+   setMainWindow(&w);
+   a.installEventFilter(&w);
+   return a.exec();
+ }
