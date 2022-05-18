@@ -7,7 +7,7 @@ PROJECT FOE, Create a code grading system based on machine learning.
     Questions to answer
         How do you assign a grade to each snippet in the database for the model to learn from?
             IDEAS:
-                Generate a quality likelihood score (0-100%) based on:
+                Generate a quality likelihood score (0-1) based on:
                     (The Codebase)
                         The number of revisions the code has had based on previous commits (is this doable?)
                         COLLAPSABLE COMMENT ABOUT THE THING ABOVE
@@ -21,6 +21,7 @@ PROJECT FOE, Create a code grading system based on machine learning.
 
                             In other words: if you ask Git to git log -L :myfunction:path/to/myfile.c, it will now happily print the change history of that function.
                         The number of stars on the repo
+                            https://pygithub.readthedocs.io/en/latest/examples/Repository.html#:~:text=Get%20count%20of%20stars%20%C2%B6%20%3E%3E%3E%20repo%20%3D,%3D%20repo.get_issues%28state%3D%27open%27%29%20%3E%3E%3E%20for%20issue%20in%20open_issues%3A...%20print%28issue%29
                         The number of forks on the repo
                         The number of commits on the piece of code? ()
                         The number of contributors on the repo (Over 100 is a good indicator)
