@@ -9,17 +9,18 @@ PROJECT FOE, Create a code grading system based on machine learning.
             IDEAS:
                 Generate a quality likelihood score (0-1) based on:
                     (The Codebase)
-                        The number of revisions the code has had based on previous commits (is this doable?)
-                        COLLAPSABLE COMMENT ABOUT THE THING ABOVE
-                            Recent versions of git log learned a special form of the -L parameter:
+                        The number of revisions the code has had based on previous commits (FOUND A WAY TO DO)
+                            USE GIT log
+                            Command 'git --no-pager log --pretty=oneline -L :main:main.cc > log.txt'
+                            TODO: WRITE PARSER FOR THIS
+                            
+                        
+                        
+                        path/to/myfile.c, it will now happily print the change history of that function.
+                            git --no-pager log --no-notes -L :main:main.cc > log.txt
 
-                            -L :<funcname>:<file>
 
-                            Trace the evolution of the line range given by "<start>,<end>" (or the function name regex <funcname>) within the <file>. You may not give any pathspec limiters. This is currently limited to a walk starting from a single revision, i.e., you may only give zero or one positive revision arguments. You can specify this option more than once.
-                            ...
-                            If “:<funcname>” is given in place of <start> and <end>, it is a regular expression that denotes the range from the first funcname line that matches <funcname>, up to the next funcname line. “:<funcname>” searches from the end of the previous -L range, if any, otherwise from the start of file. “^:<funcname>” searches from the start of file.
-
-                            In other words: if you ask Git to git log -L :myfunction:path/to/myfile.c, it will now happily print the change history of that function.
+                        
                         The number of stars on the repo
                             https://pygithub.readthedocs.io/en/latest/examples/Repository.html#:~:text=Get%20count%20of%20stars%20%C2%B6%20%3E%3E%3E%20repo%20%3D,%3D%20repo.get_issues%28state%3D%27open%27%29%20%3E%3E%3E%20for%20issue%20in%20open_issues%3A...%20print%28issue%29
                         The number of forks on the repo
