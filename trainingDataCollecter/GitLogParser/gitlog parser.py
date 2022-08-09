@@ -9,11 +9,14 @@
 #	- commit description
 #   - how many commits it's been since the first commit (again start at 0)
 
+
 from asyncio.windows_events import NULL
+import os
+import sys
 
 
-file = 'gitlog.txt'
-path = './'
+
+
 
 
 def load_commit_log(file):
@@ -61,10 +64,28 @@ def parse_commit_log(log):
     return commits
 
 def main():
-    log = load_commit_log(path + file)
+    file = './gitlog.txt'
+    output = './gitlog/'
+    lengthOfargv = len(sys.argv)
+    if lengthOfargv > 1 and sys.argv[1] == '-h':
+        print("Usage: gitlog.py <path to log file> <path to output directory>")
+        exit(0)
+    else:
+        if lengthOfargv > 1:
+            file = sys.argv[1]
+        if lengthOfargv > 2:
+            output = sys.argv[2]
+
+
+    log = load_commit_log(file)
     commits = parse_commit_log(log)
     
-
-    print(commits[8])
-
+    #write commits to files
+    os.makedirs(output, exist_ok=True)
+    for i in range(len(commits)):
+        with open(output + str(i) + '.txt', 'w') as f:
+            f.write(commits[i]['commitcontent'])
+        commits[i].pop('commitcontent')
+        with open(output + str(i) + '.json', 'w') as f:
+            f.write(str(commits[i]) + '\n')
 main()
