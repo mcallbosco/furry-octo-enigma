@@ -10,14 +10,8 @@
 #   - how many commits it's been since the first commit (again start at 0)
 
 
-from asyncio.windows_events import NULL
 import os
 import sys
-
-
-
-
-
 
 def load_commit_log(file):
     with open(file, 'r') as f:
