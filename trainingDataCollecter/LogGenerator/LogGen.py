@@ -16,6 +16,8 @@ def getExtensions(db, language):
     return None
 
 def searchFiles(path, fileformats):
+
+    #JANK ONLY WORKS WITH PYTHON FOR NOW
     filesToDo = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -32,7 +34,7 @@ def generateLogs(filestodo,rootpath):
         methods = parseMethodsPython(file,rootpath)
 
         for method in methods:
-            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" +method+ ":." + file + " > log["+method+"].txt", shell=True)
+            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > log["+method+"].txt", shell=True)
             print("Generated logs for " + file)
         
 
