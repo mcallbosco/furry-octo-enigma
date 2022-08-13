@@ -23,19 +23,23 @@ def searchFiles(path, fileformats):
                 if file.endswith(fileformat):
                     #code to generate a list of paths of files to generate logs for
                     filesToDo.append(os.path.join(root, file).removeprefix(path))
-                    print(os.path.join(root, file).removeprefix(path+"\\"))
     return filesToDo
 
 def generateLogs(filestodo,rootpath):              
     for file in filestodo:
-        #working, need to figure out how to parse classes for each file.
-        #parseMethodsPython(file)
-        process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -- ." + file, shell=True)
-        print("Generated logs for " + file)
-        #git --no-pager log --no-notes -L :main:main.cc > log.txt
+        #working, need to figure out how to parse methods for each file.
+        print(file)
+        methods = parseMethodsPython(file,rootpath)
 
-def parseMethodsPython(file):
-    with open(file, 'r') as f:
+        for method in methods:
+            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" +method+ ":." + file + " > log["+method+"].txt", shell=True)
+            print("Generated logs for " + file)
+        
+
+
+def parseMethodsPython(file,rootpath):
+    #todo: fix // in file
+    with open(rootpath+file, 'r') as f:
         data = f.read()
     methods = []
     for line in data.split('\n'):
