@@ -27,20 +27,25 @@ def searchFiles(path, fileformats):
                     filesToDo.append(os.path.join(root, file).removeprefix(path))
     return filesToDo
 
-def generateLogs(filestodo,rootpath):              
+def generateLogs(filestodo,rootpath,outputpath):              
     for file in filestodo:
         #working, need to figure out how to parse methods for each file.
         print(file)
-        methods = parseMethodsPython(file,rootpath)
-
+        if file.endswith('.py'):
+            #bad news, git log brakes for python methods in a class for some reason...
+            methods = parseMethodsPython(file,rootpath)
+        if file.endswith('.java'):
+            #bad news, same with java...
+            methods = parseMethodsJava(file,rootpath)
+        if methods is None:
+            break
         for method in methods:
-            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > log["+method+"].txt", shell=True)
-            print("Generated logs for " + file)
+            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\log["+method+"].txt", shell=True)
+            print("Generated logs for " + file + method)
         
 
 
 def parseMethodsPython(file,rootpath):
-    #todo: fix // in file
     with open(rootpath+file, 'r') as f:
         data = f.read()
     methods = []
@@ -53,12 +58,36 @@ def parseMethodsPython(file,rootpath):
     print(methods)
     return methods
 
+def parseMethodsJava(file,rootpath):
+    with open(rootpath+file, 'r') as f:
+        data = f.read()
+    methods = []
+    for line in data.split('\n'):
+        line = line.strip(string.whitespace)
+        line.strip(" ")
+
+        if line.startswith('public '):
+            splitline = line.split('public ')[1].split('(')[0].split(' ')
+            splitline = splitline[len(splitline)-1].strip(";").strip("{")
+
+            methods.append(splitline)
+        elif line.startswith('private '):
+            splitline = line.split('private ')[1].split('(')[0].split(' ')
+            splitline = splitline[len(splitline)-1].strip(";").strip("{")
+            methods.append(splitline)
+        elif line.startswith('protected '):
+            splitline = line.split('protected ')[1].split('(')[0].split(' ')
+            splitline = splitline[len(splitline)-1].strip(";").strip("{")
+            methods.append(splitline)
+        
+    print(methods)
+    return methods
 
 def main():
     parser = argparse.ArgumentParser(description='Generates a folder of gitlogs for certain Languages from a git repo on disk. ONLY FOR BASH SYSTEMS')
     parser.add_argument('-f', '--fileformat', help='The fileformat to generate logs for according to fileformats.JSON by default', required=True)
     parser.add_argument('-p', '--path', help='The path to the git repo to generate logs for', required=True)
-    #parser.add_argument('-o', '--output', help='The output folder', required=True)
+    parser.add_argument('-o', '--output', help='The output folder', required=True)
     parser.add_argument('-d', '--defJSON', help='the definitions of file formats', required=False)
     args = parser.parse_args()
     if args.defJSON is None:
@@ -75,7 +104,7 @@ def main():
             print(language)
         return
     filesToDo = searchFiles(args.path, fileformats)
-    generateLogs(filesToDo,args.path)
+    generateLogs(filesToDo,args.path,args.output)
 
 
 main()
