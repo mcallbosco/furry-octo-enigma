@@ -1,5 +1,6 @@
 import argparse
 import json
+from operator import truediv
 import os
 import string
 import subprocess
@@ -16,8 +17,6 @@ def getExtensions(db, language):
     return None
 
 def searchFiles(path, fileformats):
-
-    #JANK ONLY WORKS WITH PYTHON FOR NOW
     filesToDo = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -27,22 +26,28 @@ def searchFiles(path, fileformats):
                     filesToDo.append(os.path.join(root, file).removeprefix(path))
     return filesToDo
 
-def generateLogs(filestodo,rootpath,outputpath):              
+def generateLogs(filestodo,rootpath,outputpath,usemethods):   
+    incnumb=0           
     for file in filestodo:
-        #working, need to figure out how to parse methods for each file.
-        print(file)
-        if file.endswith('.py'):
-            #bad news, git log brakes for python methods in a class for some reason...
-            methods = parseMethodsPython(file,rootpath)
-        if file.endswith('.java'):
-            #bad news, same with java...
-            methods = parseMethodsJava(file,rootpath)
-        if methods is None:
-            break
-        for method in methods:
-            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\log["+method+"].txt", shell=True)
-            print("Generated logs for " + file + method)
-        
+        if usemethods is True:
+            methods = findmethods(file,rootpath)
+            if methods is None:
+                break
+            for method in methods:
+                process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\log" + str(incnumb) +"["+method+"].txt", shell=True)
+                print("Generated logs for " + file + method)
+                #opens log and checks if it's 0 bytes, if so, delete it
+                with open(outputpath +"\log" + str(incnumb) +"["+method+"].txt", 'r') as f:
+                    data = f.read()
+                if len(data) == 0:
+                    os.remove(outputpath +"\log" + str(incnumb) +"["+method+"].txt") 
+                    print("Deleted empty log")   
+                incnumb += 1
+        else:
+            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L start,end." + file + " > "+ outputpath +"\log" + str(incnumb) +".txt", shell=True)
+            print("Generated logs for " + file)
+            incnumb += 1
+
 
 
 def parseMethodsPython(file,rootpath):
@@ -55,7 +60,6 @@ def parseMethodsPython(file,rootpath):
 
         if line.startswith('def '):
             methods.append(line.split('def ')[1].split('(')[0])
-    print(methods)
     return methods
 
 def parseMethodsJava(file,rootpath):
@@ -83,13 +87,28 @@ def parseMethodsJava(file,rootpath):
     print(methods)
     return methods
 
+def findmethods(file,rootpath):
+    #working, need to figure out how to parse methods for each file.
+    if file.endswith('.py'):
+        methods = parseMethodsPython(file,rootpath)
+    if file.endswith('.java'):
+        methods = parseMethodsJava(file,rootpath)
+
+    return methods
+
 def main():
     parser = argparse.ArgumentParser(description='Generates a folder of gitlogs for certain Languages from a git repo on disk. ONLY FOR BASH SYSTEMS')
     parser.add_argument('-f', '--fileformat', help='The fileformat to generate logs for according to fileformats.JSON by default', required=True)
     parser.add_argument('-p', '--path', help='The path to the git repo to generate logs for', required=True)
     parser.add_argument('-o', '--output', help='The output folder', required=True)
     parser.add_argument('-d', '--defJSON', help='the definitions of file formats', required=False)
+    parser.add_argument('-m', '--methods', help='finds methods in the files to generate logs for. Buggy!!!', default=False, action="store_true")
     args = parser.parse_args()
+    if args.methods is True:
+        readmethods = True
+        print("Reading methods")
+    else:
+        readmethods = False
     if args.defJSON is None:
         args.defJSON = './fileformats.json'
     with open(args.defJSON, 'r') as f:
@@ -104,7 +123,7 @@ def main():
             print(language)
         return
     filesToDo = searchFiles(args.path, fileformats)
-    generateLogs(filesToDo,args.path,args.output)
+    generateLogs(filesToDo,args.path,args.output,readmethods)
 
 
 main()
