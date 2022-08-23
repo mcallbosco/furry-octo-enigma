@@ -14,6 +14,7 @@ def downloadRepo(repo, path, branch , BranchReturn , submodules):
     else:
         branchtext = ''
         branchpath = path + "\main"
+    print("git clone "+ branchtext + repo + " "+ branchpath)
     process1 = subprocess.run("git clone "+ branchtext + repo + " "+ branchpath, shell=True)
     if (submodules):
         process2 = subprocess.run("cd /d " + branchpath + "&& git submodule update --init --recursive", shell=True)
@@ -25,6 +26,8 @@ def downloadRepo(repo, path, branch , BranchReturn , submodules):
             if branch != "":
                 branch = branch.split("/")[1]
                 branchlist.append(branch)
+
+        print (branchlist)
         return branchlist
     return None
 

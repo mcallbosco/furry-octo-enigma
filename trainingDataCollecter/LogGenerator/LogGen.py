@@ -9,7 +9,7 @@ import subprocess
 #HELPS https://stackoverflow.com/questions/67382153/how-to-search-for-keywords-in-json
 
 verbose = False
-
+DEFAULT_JSON_FILE = './fileformats.json'
 def getExtensions(db, language):
     db = next(
         (item for item in db if item["language"] == language), None
@@ -19,6 +19,7 @@ def getExtensions(db, language):
     return None
 
 def searchFiles(path, fileformats):
+    
     filesToDo = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -28,7 +29,11 @@ def searchFiles(path, fileformats):
                     filesToDo.append(os.path.join(root, file).removeprefix(path))
     return filesToDo
 
-def generateLogs(filestodo,rootpath,outputpath,usemethods):   
+def generateLogs(filestodo,rootpath,outputpath,usemethods): 
+    try:
+        os.makedirs(outputpath)
+    except OSError as error:
+        print("error making folder")
     incnumb=0           
     for file in filestodo:
         if usemethods is True:
@@ -40,15 +45,15 @@ def generateLogs(filestodo,rootpath,outputpath,usemethods):
                 process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
                 print("Generated logs for " + file + "[" + method + "]")
                 #opens log and checks if it's 0 bytes, if so, delete it
-                with open(outputpath +"\\" + outputname, 'r') as f:
+                with open(outputpath +"\\" + outputname, 'r' , encoding="utf8") as f:
                     data = f.read()
                 if len(data) == 0:
                     os.remove(outputpath +"\\" + outputname)
                     print("Deleted empty log")   
                 incnumb += 1
         else:
-            outputname = str(file).split("\\")[len(str(file).split("\\")) - 1].split(".")[0] +"["+method+"].gitlog"
-            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes --patch ." + file + " > "+ outputname, shell=True)
+            outputname = str(file).split("\\")[len(str(file).split("\\")) - 1].split(".")[0] +".gitlog"
+            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes --patch ." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
             print("Generated logs for " + file)
             incnumb += 1
     print("Generated " + str(incnumb) + " logs")
@@ -69,6 +74,8 @@ def parseMethodsCtags(file,rootpath):
     return methods
 
 def logGen(fileformats,path,output,defJSON,usemethods):
+    if defJSON is None:
+        defJSON = DEFAULT_JSON_FILE
     with open(defJSON, 'r') as f:
         data = f.read()
     fileformatsdb = json.loads(data)
@@ -93,7 +100,7 @@ def main():
     parser.add_argument('-m', '--methods', help='finds methods in the files to generate logs for. Buggy!!! Supports languages and files ctags supports', default=False, action="store_true")
     args = parser.parse_args()
     if args.defJSON is None:
-        args.defJSON = './fileformats.json'
+        args.defJSON = DEFAULT_JSON_FILE
     logGen(args.fileformat,args.path,args.output,args.defJSON,args.methods)
     
     """
