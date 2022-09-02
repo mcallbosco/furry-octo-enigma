@@ -4,6 +4,7 @@ from operator import truediv
 import os
 import string
 import subprocess
+#IDEAS Generate Hashes for each file to make sure we don't get a bunch of the same files.
 #INPUTS: Fileformat from fileformats.json, path to folder
 #OUTPUTS: A folder of gitlogs generated from files matching the fileformat
 #HELPS https://stackoverflow.com/questions/67382153/how-to-search-for-keywords-in-json
@@ -42,7 +43,7 @@ def generateLogs(filestodo,rootpath,outputpath,usemethods):
                 break
             for method in methods:
                 outputname = str(file).split("\\")[len(str(file).split("\\")) - 1].split(".")[0] +"["+method+"].gitlog"
-                process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
+                process1 = subprocess.run("cd /d " + rootpath + " && git --no-pager log --no-notes -L :" + method + ":." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
                 print("Generated logs for " + file + "[" + method + "]")
                 #opens log and checks if it's 0 bytes, if so, delete it
                 with open(outputpath +"\\" + outputname, 'r' , encoding="utf8") as f:
@@ -53,7 +54,7 @@ def generateLogs(filestodo,rootpath,outputpath,usemethods):
                 incnumb += 1
         else:
             outputname = str(file).split("\\")[len(str(file).split("\\")) - 1].split(".")[0] +".gitlog"
-            process1 = subprocess.run("cd " + rootpath + " && git --no-pager log --no-notes --patch ." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
+            process1 = subprocess.run("cd /d " + rootpath + " && git --no-pager log --no-notes --patch ." + file + " > "+ outputpath +"\\" +  outputname, shell=True)
             print("Generated logs for " + file)
             incnumb += 1
     print("Generated " + str(incnumb) + " logs")
@@ -78,6 +79,7 @@ def logGen(fileformats,path,output,defJSON,usemethods):
         defJSON = DEFAULT_JSON_FILE
     with open(defJSON, 'r') as f:
         data = f.read()
+    f.close
     fileformatsdb = json.loads(data)
     fileformatsToParse = fileformatsdb["languageToAnalyze"]
     fileformats = getExtensions(fileformatsToParse,fileformats)

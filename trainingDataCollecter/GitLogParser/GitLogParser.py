@@ -9,7 +9,8 @@
 #	- commit description
 #   - how many commits it's been since the first commit (again start at 0)
 
-
+import argparse
+from asyncio.windows_events import NULL
 import os
 import sys
 
@@ -58,28 +59,23 @@ def parse_commit_log(log):
     return commits
 
 def main():
-    file = './gitlog.txt'
-    output = './gitlog/'
-    lengthOfargv = len(sys.argv)
-    if lengthOfargv > 1 and sys.argv[1] == '-h':
-        print("Usage: gitlog.py <path to log file> <path to output directory>")
-        exit(0)
-    else:
-        if lengthOfargv > 1:
-            file = sys.argv[1]
-        if lengthOfargv > 2:
-            output = sys.argv[2]
-
-
-    log = load_commit_log(file)
-    commits = parse_commit_log(log)
+    parser = argparse.ArgumentParser(description='Seperate a gitlog file from LogGenerator into different files with corresponding JSON files containing metadata')
+    parser.add_argument('-l', '--logfile', help='The input log file', required=True)
+    parser.add_argument('-o', '--output', help='The output folder', required=True)
+    args = parser.parse_args()
     
+    log = load_commit_log(args.logfile)
+    commits = parse_commit_log(log)
+
     #write commits to files
-    os.makedirs(output, exist_ok=True)
+    os.makedirs(args.output, exist_ok=True)
     for i in range(len(commits)):
-        with open(output + str(i) + '.txt', 'w') as f:
+        print("test")
+        with open(args.output + "\\" + str(i) + '.txt', 'w') as f:
             f.write(commits[i]['commitcontent'])
+        f.close
         commits[i].pop('commitcontent')
-        with open(output + str(i) + '.json', 'w') as f:
+        with open(args.output + str(i) + '.json', 'w') as f:
             f.write(str(commits[i]) + '\n')
+        f.close
 main()
